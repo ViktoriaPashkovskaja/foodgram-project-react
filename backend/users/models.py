@@ -18,19 +18,18 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
-    objects = None
     subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='subscribed_to',
-        verbose_name='follow')
+        verbose_name='Подписчик')
     subscribed_to = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='subscribers',
-        verbose_name='Who is subscribed to')
+        verbose_name='На кого подписан')
 
     class Meta:
-        verbose_name = 'subscriber'
-        verbose_name_plural = 'subscribers'
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
         unique_together = ('subscriber', 'subscribed_to',)

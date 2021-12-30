@@ -12,12 +12,12 @@ class Ingredient(models.Model):
         default=""
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Ingredient'
         verbose_name_plural = 'Ingredients'
+
+    def __str__(self):
+        return self.name
 
 
 class Tag(models.Model):
@@ -26,12 +26,12 @@ class Tag(models.Model):
     color = models.CharField(max_length=8, null=True, blank=True)
     slug = models.SlugField(verbose_name='slug', max_length=200, unique=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Tag'
         verbose_name_plural = 'Tags'
+
+    def __str__(self):
+        return self.name
 
 
 class Recipe(models.Model):
@@ -50,13 +50,13 @@ class Recipe(models.Model):
     text = models.CharField(max_length=200)
     cooking_time = models.PositiveIntegerField()
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ['-pub_date']
         verbose_name = 'Recipe'
         verbose_name_plural = 'Recipes'
+
+    def __str__(self):
+        return self.name
 
 
 class IngredientAmount(models.Model):

@@ -4,6 +4,7 @@ from .models import (Favorites, Ingredient, IngredientAmount, Recipe,
                      ShoppingCart, Tag)
 
 
+@admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement')
     list_filter = (
@@ -11,6 +12,7 @@ class IngredientAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author')
     list_filter = (
@@ -20,25 +22,21 @@ class RecipeAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color', 'slug')
 
 
+@admin.register(IngredientAmount)
 class IngredientAmountAdmin(admin.ModelAdmin):
     list_display = ('ingredient', 'amount')
 
 
+@admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'recipe_id')
 
 
+@admin.register(Favorites)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'recipe_id')
-
-
-admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(Tag, TagAdmin)
-admin.site.register(IngredientAmount, IngredientAmountAdmin)
-admin.site.register(ShoppingCart, ShoppingCartAdmin)
-admin.site.register(Favorites, FavoriteAdmin)

@@ -12,7 +12,7 @@ from .serializers import SubscriptionsSerializer
 User = get_user_model()
 
 
-class UserViewSet(UserViewSet):
+class DjUserViewSet(UserViewSet):
 
     @action(detail=False, methods=('GET',))
     def subscriptions(self, request):
@@ -65,5 +65,4 @@ class UserViewSet(UserViewSet):
                 'subscribed_to_id', flat=True)
             queryset = User.objects.filter(id__in=subscribed_to).annotate(
                 count=Count('recipes__id'))
-            return queryset
         return queryset

@@ -11,8 +11,6 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ('username', 'email')
 
 
+@admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
     list_display = ('subscriber', 'subscribed_to')
-
-
-admin.site.register(Follow)
