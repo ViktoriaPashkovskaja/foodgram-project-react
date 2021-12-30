@@ -1,11 +1,16 @@
-name: foodgram-project-react workflow
+name: Foodgram-project
 
-on: [push]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
 
 jobs:
-
-  build_backend:
-    name: Push Docker backend image to Docker Hub
+  build_and_push_to_docker_hub:
+    name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -21,77 +26,44 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          context: backend
-          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram-project-react
-
-  build_frontend:
-    name: Push Docker frontend image to Docker Hub
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to Docker
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Push to Docker Hub
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          context: frontend
-          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram-project-react
+          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram
 
   deploy:
+    env:
+      PROJECT_ROOT: ~/app
     runs-on: ubuntu-latest
-    needs:
-      - build_backend
-      - build_frontend
-    if:
-      contains('
-        refs/heads/main
-        refs/heads/master
-      ', github.ref)
+    needs: build_and_push_to_docker_hub
+    if: github.ref == 'refs/heads/master'
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: copy docker-compose and nginx
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "infra/docker-compose.yaml, nginx/default.conf, backend/static, infra/.env"
+          target: ${{ env.PROJECT_ROOT }}
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          stack_file_name: docker-compose.yaml
           script: |
-            cd infra
-            echo ${{ secrets.DOCKER_PASSWORD }} | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram-project-react
-
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram-project-react
+            cd ${{ env.PROJECT_ROOT }}
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram
             sudo docker-compose stop
             sudo docker-compose rm web
-            touch .env
-            echo SENTRY_DNS=${{ secrets.SENTRY_DNS }} >> .env
-            echo DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }} >> .env
-            echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
-            echo DB_NAME=${{ secrets.DB_NAME }} >> .env
-            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             sudo docker-compose up -d
-            sudo docker-compose exec web python manage.py makemigrations users
-            sudo docker-compose exec web python manage.py makemigrations recipes
-            sudo docker-compose exec -T web python manage.py migrate --noinput
-            sudo docker-compose exec -T web python manage.py collectstatic --no-input
-
   send_message:
     runs-on: ubuntu-latest
     needs: deploy
     steps:
-    - name: send message
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: ${{ github.workflow }} успешно выполнен!
+      - name: send message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: ${{ github.workflow }} успешно выполнен!
