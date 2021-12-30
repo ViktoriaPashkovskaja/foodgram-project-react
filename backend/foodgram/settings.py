@@ -12,7 +12,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
-    '51.250.19.132',
+    '51.250.30.22',
     'localhost',
     'yatubeya.ru',
     'www.yatubeya.ru'
