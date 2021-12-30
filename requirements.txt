@@ -1,8 +1,8 @@
 attrs==21.2.0 
-asgiref==3.2.10            
+asgiref==3.2.10
 certifi==2019.9.11     
 chardet==3.0.4         
-Django==3.2.7
+django==2.2.16
 django-filter==2.4.0
 djangorestframework==3.12.4
 djangorestframework-simplejwt==4.8.0
