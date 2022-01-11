@@ -8,14 +8,7 @@ services:
     env_file:
       - ./.env
 
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ../frontend/:/app/result_build/
-
-  backend:
+  web:
     image: viksan29/foodgram_backend
     restart: always
     volumes:
@@ -32,15 +25,12 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/var/html/static/
       - media_value:/app/media/
     depends_on:
-      - frontend
+      - web
 
 volumes:
-  result_build:
   postgres_data:
   static_value:
   media_value:
