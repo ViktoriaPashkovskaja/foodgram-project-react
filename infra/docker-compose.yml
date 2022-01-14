@@ -30,7 +30,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ../frontend/build:/usr/share/nginx/html
+      - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:usr/share/ngnix/html/api/docs/
       - ../static:/var/html/static/
       - media_value:/var/html/media/
