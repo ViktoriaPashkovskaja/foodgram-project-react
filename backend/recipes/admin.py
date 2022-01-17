@@ -15,11 +15,7 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author')
-    list_filter = (
-        ('author', admin.RelatedOnlyFieldListFilter),
-        ('tags', admin.RelatedOnlyFieldListFilter),
-        ('name', ),
-    )
+    list_filter = ('author', 'name', 'tags')
 
 
 @admin.register(Tag)
