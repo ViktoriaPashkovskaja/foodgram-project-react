@@ -1,5 +1,3 @@
-from abc import ABC
-
 from django.contrib.auth import get_user_model
 from djoser.conf import settings
 from djoser.serializers import UserCreateSerializer, UserSerializer

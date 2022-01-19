@@ -38,7 +38,8 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(Tag, related_name='tags')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                verbose_name='author', related_name='recipes')
-    ingredients = models.ManyToManyField(Ingredient, verbose_name='Ingredients')
+    ingredients = models.ManyToManyField(Ingredient,
+                                         verbose_name='Ingredients')
     pub_date = models.DateTimeField('date of publication of the recipe',
                                     auto_now_add=True, db_index=True,)
     name = models.CharField(max_length=100)
