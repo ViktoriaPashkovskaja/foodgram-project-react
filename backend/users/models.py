@@ -18,6 +18,7 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
+    objects = None
     subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

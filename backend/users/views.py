@@ -15,7 +15,7 @@ User = get_user_model()
 class DjUserViewSet(UserViewSet):
 
     @action(detail=False, methods=('GET',))
-    def subscriptions(self, request):
+    def subscriptions(self):
         user = self.request.user
         subscribed_to = user.subscribed_to.all().values_list(
             'subscribed_to_id', flat=True)

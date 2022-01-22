@@ -8,14 +8,18 @@ from .models import (Favorites, Ingredient, IngredientAmount, Recipe,
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement')
     list_filter = (
-        ('name', ),
+        ('name', admin.RelatedOnlyFieldListFilter),
     )
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author')
-    list_filter = ('author', 'name', 'tags')
+    list_filter = (
+        ('author', admin.RelatedOnlyFieldListFilter),
+        ('tags', admin.RelatedOnlyFieldListFilter),
+        ('name', admin.RelatedOnlyFieldListFilter),
+    )
 
 
 @admin.register(Tag)
