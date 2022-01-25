@@ -65,4 +65,5 @@ class DjUserViewSet(UserViewSet):
                 'subscribed_to_id', flat=True)
             queryset = User.objects.filter(id__in=subscribed_to).annotate(
                 count=Count('recipes__id'))
+            return queryset
         return queryset
