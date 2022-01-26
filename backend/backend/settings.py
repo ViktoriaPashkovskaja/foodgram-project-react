@@ -15,7 +15,8 @@ ALLOWED_HOSTS = [
     '51.250.30.22',
     'localhost',
     'yatubeya.ru',
-    'www.yatubeya.ru'
+    'www.yatubeya.ru',
+    'backend'
 ]
 
 INSTALLED_APPS = [
