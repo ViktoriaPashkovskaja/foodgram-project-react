@@ -17,13 +17,13 @@ class CustomUserSerializer(UserSerializer):
             'id', 'email', 'username', 'first_name', 'last_name',
             'is_subscribed',
         )
+        read_only_fields = (settings.LOGIN_FIELD, )
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        return Subscribe.objects.filter(user=request.user,
-                                        following=obj).exists()
+        return obj.subscribers.filter(subscriber=request.user).exists()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
