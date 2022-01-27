@@ -29,7 +29,7 @@ class Tag(Model):
 
 class Ingredient(Model):
     name = CharField('Название', max_length=200)
-    measurement_unit = CharField('Единица измерения', max_length=200)
+    measurement = CharField('Единица измерения', max_length=200)
 
     class Meta:
         verbose_name = 'Ингредиент'
@@ -92,7 +92,7 @@ class CountOfIngredient(Model):
             )
         ),)
     )
-    recipe = ForeignKey(
+    recipes = ForeignKey(
         Recipe,
         on_delete=CASCADE,
         verbose_name='Рецепт',
@@ -103,7 +103,7 @@ class CountOfIngredient(Model):
         verbose_name_plural = 'Количество ингредиентов'
         constraints = (
             UniqueConstraint(
-                fields=('ingredient', 'recipe',),
+                fields=('ingredient', 'recipes',),
                 name='unique_ingredient_amount',
             ),
         )
@@ -116,7 +116,7 @@ class Favorite(Model):
         related_name='favorites',
         verbose_name='Пользователь',
     )
-    recipe = ForeignKey(
+    recipes = ForeignKey(
         Recipe,
         on_delete=CASCADE,
         related_name='favorites',
@@ -128,8 +128,8 @@ class Favorite(Model):
         verbose_name_plural = 'Избранное'
         constraints = (
             UniqueConstraint(
-                fields=('user', 'recipe',),
-                name='unique_user_recipe',
+                fields=('user', 'recipes',),
+                name='unique_user_recipes',
             ),
         )
 
@@ -141,7 +141,7 @@ class ShoppingCart(Model):
         related_name='shopping_cart',
         verbose_name='Пользователь',
     )
-    recipe = ForeignKey(
+    recipes = ForeignKey(
         Recipe,
         on_delete=CASCADE,
         related_name='shopping_cart',
@@ -153,7 +153,7 @@ class ShoppingCart(Model):
         verbose_name_plural = 'Списки покупок'
         constraints = (
             UniqueConstraint(
-                fields=('user', 'recipe'),
+                fields=('user', 'recipes'),
                 name='unique_shopping_cart',
             ),
         )
