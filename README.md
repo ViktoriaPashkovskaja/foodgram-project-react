@@ -20,14 +20,13 @@ cd foodgram-project-react/infra
 docker-compose up -d --build
 
 Сделать миграции, собрать статику и создать суперпользователя:
-docker-compose exec -T web python manage.py makemigrations users --noinput
-docker-compose exec -T web python manage.py makemigrations recipes --noinput
-docker-compose exec -T web python manage.py migrate --noinput
-docker-compose exec -T web python manage.py collectstatic --no-input
-docker-compose exec web python manage.py createsuperuser
+docker-compose exec -T backend python manage.py makemigrations
+docker-compose exec -T backend python manage.py migrate --noinput
+docker-compose exec -T backend python manage.py collectstatic --no-input
+docker-compose exec backend python manage.py createsuperuser
 
 Чтобы заполнить базу данных начальными данными списка ингридиетов выполните:
-docker-compose exec -T web python manage.py loaddata data/ingredients_1.json 
+docker-compose exec -T backend python manage.py loaddata data/ingredients_1.json 
 Теперь можно зайти в админку http://<ваш хост>/admin/ под вашим логином администратора.
 
 ###Регистрация и авторизация

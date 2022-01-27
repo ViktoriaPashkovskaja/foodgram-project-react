@@ -118,6 +118,14 @@ class RecipeSerializer(serializers.ModelSerializer):
                 amount=ingredient['amount'])
 
     def create(self, validated_data):
+        author = self.context.get('request', ).user
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(author=author, **validated_data)
+        self.create_tags(tags, recipe)
+        self.create_ingredients(ingredients, recipe)
+        return recipe
+
         validated_data.pop('ingredients_amount')
         tags = validated_data.pop('tags')
         recipe = super().create(validated_data)
@@ -148,9 +156,9 @@ class RepresentationSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
+class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Favorite
+        model = ShoppingCart
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
@@ -160,9 +168,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
             instance.recipe, context=context).data
 
 
-class ShoppingCartSerializer(serializers.ModelSerializer):
+class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ShoppingCart
+        model = Favorite
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
