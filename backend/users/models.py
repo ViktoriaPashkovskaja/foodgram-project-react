@@ -4,17 +4,17 @@ from django.db.models import (CASCADE, CharField, EmailField, ForeignKey,
 
 
 class User(AbstractUser):
-    email = EmailField('Почта', max_length=254, unique=True)
-    username = CharField('Никнейм', max_length=150, unique=True, blank=True)
-    first_name = CharField('Имя', max_length=150)
-    last_name = CharField('Фамилия', max_length=150)
+    email = EmailField('Email', max_length=254, unique=True)
+    username = CharField('Username', max_length=150, unique=True, blank=True)
+    first_name = CharField('Name', max_length=150)
+    last_name = CharField('Surname', max_length=150)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
         ordering = ('-pk',)
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
 
     def __str__(self):
         return self.username
@@ -25,18 +25,18 @@ class Subscribe(Model):
         User,
         on_delete=CASCADE,
         related_name='subscriber',
-        verbose_name='Подписчик'
+        verbose_name='Subscriber'
     )
     following = ForeignKey(
         User,
         on_delete=CASCADE,
         related_name='following',
-        verbose_name='Автор'
+        verbose_name='Author'
     )
 
     class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
+        verbose_name = 'Subscription'
+        verbose_name_plural = 'Subscriptions'
         constraints = (
             UniqueConstraint(
                 fields=('user', 'following',),

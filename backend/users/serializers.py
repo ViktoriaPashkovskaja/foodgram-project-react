@@ -26,7 +26,7 @@ class CustomUserSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        request = self.context.get('request')
+        request = self.context.get('request', )
         if not request or request.user.is_anonymous:
             return False
         return Subscribe.objects.filter(user=request.user,
@@ -46,7 +46,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         ]
 
     def to_representation(self, instance):
-        request = self.context.get('request')
+        request = self.context.get('request', )
         context = {'request': request}
         return SubscriptionListSerializer(
             instance.following, context=context).data
@@ -69,23 +69,24 @@ class SubscriptionListSerializer(serializers.ModelSerializer):
                   'last_name', 'is_subscribed', 'recipes', 'recipes_count')
 
     def get_is_subscribed(self, obj):
-        request = self.context.get('request')
+        request = self.context.get('request', )
         if not request or request.user.is_anonymous:
             return False
         return Subscribe.objects.filter(
             user=request.user, following=obj).exists()
 
     def get_recipes(self, obj):
-        request = self.context.get('request')
+        request = self.context.get('request', )
         if not request or request.user.is_anonymous:
             return False
         context = {'request': request}
-        recipes_limit = request.query_params.get('recipes_limit')
+        recipes_limit = request.query_params.get('recipes_limit', )
         if recipes_limit is not None:
             recipes = obj.recipes.all()[:int(recipes_limit)]
         else:
             recipes = obj.recipes.all()
         return RecipeFollowSerializer(recipes, many=True, context=context).data
 
-    def get_recipes_count(self, obj):
+    @staticmethod
+    def get_recipes_count(obj):
         return obj.recipes.count()

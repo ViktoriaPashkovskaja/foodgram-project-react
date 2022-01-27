@@ -10,7 +10,6 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from backend.pagination import LimitPageNumberPagination
 from backend.permissions import IsAuthorOrAdminOrReadOnly
-
 from .filters import IngredientSearchFilter, RecipeFilter
 from .models import (CountOfIngredient, Favorite, Ingredient, Recipe,
                      ShoppingCart, Tag)
@@ -19,18 +18,18 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           ShoppingCartSerializer, TagSerializer)
 
 
-class TagViewSet(ReadOnlyModelViewSet):
-    serializer_class = TagSerializer
-    queryset = Tag.objects.all()
-    permission_classes = (AllowAny,)
-
-
 class IngredientViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     filter_backends = (IngredientSearchFilter,)
     queryset = Ingredient.objects.all()
     permission_classes = (AllowAny,)
     search_fields = ('^name',)
+
+
+class TagViewSet(ReadOnlyModelViewSet):
+    serializer_class = TagSerializer
+    queryset = Tag.objects.all()
+    permission_classes = (AllowAny,)
 
 
 class RecipeViewSet(ModelViewSet):
