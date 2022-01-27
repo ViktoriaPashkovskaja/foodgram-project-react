@@ -6,25 +6,24 @@ from .models import (Favorites, Ingredient, IngredientAmount, Recipe,
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'measurement')
-    list_filter = (
-        ('name', admin.RelatedOnlyFieldListFilter),
-    )
+    list_display = ('name', 'measurement', 'id')
+    list_filter = ('name',)
+    search_fields = ('name',)
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author')
-    list_filter = (
-        ('author', admin.RelatedOnlyFieldListFilter),
-        ('tags', admin.RelatedOnlyFieldListFilter),
-        ('name', admin.RelatedOnlyFieldListFilter),
-    )
+    list_display = ('name', 'author', 'added_in_favorites')
+    list_filter = ('name', 'author', 'tags',)
+    readonly_fields = ('added_in_favorites',)
+
+    def added_in_favorites(self, obj):
+        return obj.favorites.count()
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'color', 'slug')
+    list_display = ('id', 'name', 'slug', 'color',)
 
 
 @admin.register(IngredientAmount)
@@ -40,3 +39,4 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 @admin.register(Favorites)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'recipe_id')
+    list_filter = ('user_id', 'recipe_id')
