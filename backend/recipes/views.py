@@ -47,7 +47,7 @@ class RecipeViewSet(ModelViewSet):
 
     @staticmethod
     def post_method_for_action(request, pk, serializers):
-        data = {'user': request.user.id, 'recipes': pk}
+        data = {'user': request.user.id, 'recipe': pk}
         serializer = serializers(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -68,8 +68,8 @@ class RecipeViewSet(ModelViewSet):
     @staticmethod
     def delete_method_for_actions(request, pk, model):
         user = request.user
-        recipes = get_object_or_404(Recipe, id=pk)
-        model_object = get_object_or_404(model, user=user, recipes=recipes)
+        recipe = get_object_or_404(Recipe, id=pk)
+        model_object = get_object_or_404(model, user=user, recipe=recipe)
         model_object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -88,16 +88,16 @@ class RecipeViewSet(ModelViewSet):
     @action(detail=False, permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         ingredients = CountOfIngredient.objects.filter(
-            recipes__shopping_cart__user=request.user).values(
+            recipe__shopping_cart__user=request.user).values(
             'ingredient__name',
-            'ingredient__measurement').annotate(total=Sum('amount'))
+            'ingredient__measurement_unit').annotate(total=Sum('amount'))
         shopping_list = 'список:\n'
         for number, ingredient in enumerate(ingredients, start=1):
             shopping_list += (
                 f'{number} '
                 f'{ingredient["ingredient__name"]} - '
                 f'{ingredient["total"]} '
-                f'{ingredient["ingredient__measurement"]}\n')
+                f'{ingredient["ingredient__measurement_unit"]}\n')
 
         purchase_list = 'purchase_list.txt'
         response = HttpResponse(shopping_list, content_type='text/plain')

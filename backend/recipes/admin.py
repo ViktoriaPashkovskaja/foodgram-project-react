@@ -10,7 +10,7 @@ class TagAdmin(ModelAdmin):
 
 @register(Ingredient)
 class IngredientAdmin(ModelAdmin):
-    list_display = ('name', 'measurement', 'id')
+    list_display = ('name', 'measurement_unit', 'id')
     list_filter = ('name',)
     search_fields = ('name',)
 
@@ -28,11 +28,11 @@ class RecipeAdmin(ModelAdmin):
 @register(CountOfIngredient)
 class CountOfIngredientAdmin(ModelAdmin):
     list_display = (
-        'id', 'recipes', 'ingredient', 'amount'
+        'id', 'recipe', 'ingredient', 'amount'
     )
 
 
 @register(Favorite)
 class FavoriteAdmin(ModelAdmin):
-    list_display = ('user', 'recipes',)
-    list_filter = ('user', 'recipes',)
+    list_display = ('user', 'recipe',)
+    list_filter = ('user', 'recipe',)
