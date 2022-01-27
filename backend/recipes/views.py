@@ -1,6 +1,5 @@
 import io
 
-from .permissions import Author, ReadOnly
 from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
@@ -16,12 +15,13 @@ from rest_framework.response import Response
 from users.serializers import RecipeSerializer as FavoriteRecipeSerializer
 from django_filters import rest_framework as filters
 
-from .filters import SearchFilter, RecipeFilterSet
+from .filters import SearchFilter, RecipeFilter
 from .models import (Favorites, Ingredient, IngredientAmount, Recipe,
                      ShoppingCart, Tag)
 from .serializers import (IngredientListSerializer, IngredientSerializer,
                           RecipeListSerializer, ShoppingCartSerializer,
                           TagSerializer, RecipeCreateSerializer)
+from .permissions import Author, ReadOnly
 
 
 class TagViewSet(mixins.ListModelMixin,
@@ -35,7 +35,7 @@ class TagViewSet(mixins.ListModelMixin,
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = RecipeFilterSet
+    filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

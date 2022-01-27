@@ -15,7 +15,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = ('__all__')
+        fields = ('id', 'name', 'color', 'slug',)
 
 
 class IngredientListSerializer(serializers.Serializer):
@@ -146,7 +146,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = ('__all__')
+        fields = ('id', 'name', 'measurement',)
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -156,4 +156,4 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCart
-        fields = ('id', 'name', 'image', 'cooking_time')
+        fields = ('user_id', 'recipe_id')
