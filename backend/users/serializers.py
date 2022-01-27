@@ -1,11 +1,18 @@
-from django.contrib.auth import get_user_model
-from djoser.conf import settings
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from recipes.models import Recipe
 from rest_framework import serializers
-from drf_extra_fields.fields import Base64ImageField
+from rest_framework.validators import UniqueTogetherValidator
 
-User = get_user_model()
+from recipes.models import Recipe
+
+from .models import Subscribe, User
+
+
+class CustomUserCreateSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'email', 'username', 'first_name', 'last_name', 'password',
+        )
 
 
 class CustomUserSerializer(UserSerializer):
@@ -17,49 +24,68 @@ class CustomUserSerializer(UserSerializer):
             'id', 'email', 'username', 'first_name', 'last_name',
             'is_subscribed',
         )
-        read_only_fields = (settings.LOGIN_FIELD, )
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        return obj.subscribers.filter(subscriber=request.user).exists()
+        return Subscribe.objects.filter(user=request.user,
+                                        following=obj).exists()
 
 
-class CustomUserCreateSerializer(UserCreateSerializer):
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscribe
+        fields = ('user', 'following')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Subscribe.objects.all(),
+                fields=('user', 'following'),
+                message='Вы подписаны на этого автора'
+            )
+        ]
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return SubscriptionListSerializer(
+            instance.following, context=context).data
+
+
+class RecipeFollowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'image', 'name', 'cooking_time')
+
+
+class SubscriptionListSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = tuple(User.REQUIRED_FIELDS) + (
-            settings.USER_ID_FIELD,
-            settings.LOGIN_FIELD,
-            'first_name',
-            'last_name',
-            "password",
-        )
-
-
-class RecipeSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
-    name = serializers.CharField()
-    image = Base64ImageField()
-    cooking_time = serializers.IntegerField()
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
-
-
-class SubscriptionsSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    recipes = RecipeSerializer(many=True)
-    is_subscribed = serializers.SerializerMethodField()
-    count = serializers.IntegerField(read_only=True)
+        fields = ('id', 'email', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'recipes', 'recipes_count')
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        return obj.subscribers.filter(subscriber=request.user).exists()
+        return Subscribe.objects.filter(
+            user=request.user, following=obj).exists()
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        context = {'request': request}
+        recipes_limit = request.query_params.get('recipes_limit')
+        if recipes_limit is not None:
+            recipes = obj.recipes.all()[:int(recipes_limit)]
+        else:
+            recipes = obj.recipes.all()
+        return RecipeFollowSerializer(recipes, many=True, context=context).data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()

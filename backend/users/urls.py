@@ -1,11 +1,11 @@
 from django.urls import include, path
-from rest_framework.routers import DefaultRouter
 
-from .views import DjUserViewSet
-
-router = DefaultRouter()
-router.register('users', DjUserViewSet, basename='users')
+from .views import FollowListView, FollowView
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('users/<int:id>/subscribe/', FollowView.as_view(), name='subscribe'),
+    path('users/subscriptions/', FollowListView.as_view(),
+         name='subscription'),
+    path('auth/', include('djoser.urls.authtoken')),
+    path('', include('djoser.urls')),
 ]

@@ -1,16 +1,10 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
-from django.contrib.auth.admin import UserAdmin
 
-from .models import Follow
-
-User = get_user_model()
+from users.models import User
 
 
-class CustomUserAdmin(UserAdmin):
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('id', 'username', 'first_name', 'last_name', 'email')
+    search_fields = ('username', 'email')
     list_filter = ('username', 'email')
-
-
-@admin.register(Follow)
-class FollowAdmin(admin.ModelAdmin):
-    list_display = ('subscriber', 'subscribed_to')

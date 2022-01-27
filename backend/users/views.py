@@ -1,69 +1,44 @@
-from django.contrib.auth import get_user_model
-from djoser.views import UserViewSet
 from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
+from rest_framework.generics import ListAPIView, get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Count
-from .models import Follow
-from .serializers import SubscriptionsSerializer
+from rest_framework.views import APIView
 
-User = get_user_model()
+from backend.pagination import LimitPageNumberPagination
+
+from .models import Subscribe, User
+from .serializers import SubscriptionListSerializer, SubscriptionSerializer
 
 
-class DjUserViewSet(UserViewSet):
+class FollowView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=('GET',))
-    def subscriptions(self):
-        user = self.request.user
-        subscribed_to = user.subscribed_to.all().values_list(
-            'subscribed_to_id', flat=True)
-        queryset = User.objects.filter(id__in=subscribed_to).annotate(
-            count=Count('recipes__id'))
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = SubscriptionsSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = SubscriptionsSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=('GET',))
-    def subscribe(self, request, id=None):
-        user = request.user
-        author = get_object_or_404(User, id=id)
-        if user.id == id:
-            raise ValidationError('Нельзя подписаться на себя')
-        if int(id) in user.subscribed_to.all().values_list(
-                'subscribed_to', flat=True):
-            raise ValidationError('Вы уже подписаны на этого автора')
-        else:
-            follow = Follow.objects.create(
-                subscriber=user,
-                subscribed_to=author
-            )
-            follow.save()
-            serializer = SubscriptionsSerializer(author)
+    def post(self, request, id):
+        data = {'user': request.user.id, 'following': id}
+        serializer = SubscriptionSerializer(
+            data=data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @subscribe.mapping.delete
-    def delete_subscribe(self, request, id=None):
+    def delete(self, request, id):
         user = request.user
-        author = get_object_or_404(User, id=id)
-        follow = get_object_or_404(
-            Follow,
-            subscriber=user,
-            subscribed_to=author)
-        follow.delete()
+        following = get_object_or_404(User, id=id)
+        subscribe = get_object_or_404(
+            Subscribe, user=user, following=following)
+        subscribe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        if self.action == 'subscriptions':
-            user = self.request.user
-            subscribed_to = user.subscribed_to.all().values_list(
-                'subscribed_to_id', flat=True)
-            queryset = User.objects.filter(id__in=subscribed_to).annotate(
-                count=Count('recipes__id'))
-            return queryset
-        return queryset
+
+class FollowListView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    pagination_class = LimitPageNumberPagination
+
+    def get(self, request):
+        user = request.user
+        queryset = User.objects.filter(following__user=user)
+        page = self.paginate_queryset(queryset)
+        serializer = SubscriptionListSerializer(
+            page, many=True, context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
