@@ -93,7 +93,6 @@ class RecipeViewSet(ModelViewSet):
         shopping_list = 'список:\n'
         for number, ingredient in enumerate(ingredients, start=1):
             shopping_list += (
-                f'{number} '
                 f'{ingredient["ingredient__name"]} - '
                 f'{ingredient["total"]} '
                 f'{ingredient["ingredient__measurement_unit"]}\n')

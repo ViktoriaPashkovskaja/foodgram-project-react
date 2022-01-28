@@ -126,16 +126,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.create_ingredients(ingredients, recipe)
         return recipe
 
-        validated_data.pop('ingredients_amount')
-        tags = validated_data.pop('tags')
-        recipe = super().create(validated_data)
-        ingredients_amount = self.get_ingredients_list(
-            self.initial_data['ingredients'], recipe)
-        recipe.tags.set(tags)
-        recipe.ingredients_amount.set(ingredients_amount)
-        recipe.save()
-        return recipe
-
     def update(self, instance, validated_data):
         instance.tags.clear()
         CountOfIngredient.objects.filter(recipe=instance).delete()
