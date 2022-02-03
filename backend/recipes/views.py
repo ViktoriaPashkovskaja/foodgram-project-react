@@ -58,11 +58,30 @@ class RecipeViewSet(ModelViewSet):
         return self.post_method_for_action(request=request, pk=pk,
                                            serializers=FavoriteSerializer)
 
-    @action(methods=['POST'], detail=True,
-            permission_classes=[IsAuthenticated])
-    def shopping_cart(self, request, pk):
-        return self.post_method_for_action(request=request, pk=pk,
-                                           serializers=ShoppingCartSerializer)
+    @staticmethod
+    def shopping_cart(request, pk):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        user = request.user
+        if request.method == 'GET':
+            recipe, created = ShoppingCart.objects.get_or_create(
+                user=user, recipe=recipe
+            )
+            if created is True:
+                serializer = ShoppingCartSerializer()
+                return Response(
+                    serializer.to_representation(instance=recipe),
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(
+                {'errors': 'Рецепт уже в корзине покупок'},
+                status=status.HTTP_201_CREATED
+            )
+        if request.method == 'DELETE':
+            ShoppingCart.objects.filter(
+                user=user, recipe=recipe
+            ).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @staticmethod
     def delete_method_for_actions(request, pk, model):
@@ -76,12 +95,6 @@ class RecipeViewSet(ModelViewSet):
     def delete_favorite(self, request, pk):
         return self.delete_method_for_actions(
             request=request, pk=pk, model=Favorite
-        )
-
-    @shopping_cart.mapping.delete
-    def delete_shopping_cart(self, request, pk):
-        return self.delete_method_for_actions(
-            request=request, pk=pk, model=ShoppingCart
         )
 
     @action(detail=False, permission_classes=[IsAuthenticated])
