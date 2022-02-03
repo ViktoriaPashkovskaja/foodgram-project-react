@@ -3,16 +3,16 @@ from django.contrib.admin import ModelAdmin, register
 from .models import CountOfIngredient, Favorite, Ingredient, Recipe, Tag
 
 
+@register(Tag)
+class TagAdmin(ModelAdmin):
+    list_display = ('id', 'name', 'slug', 'color',)
+
+
 @register(Ingredient)
 class IngredientAdmin(ModelAdmin):
     list_display = ('name', 'measurement_unit', 'id')
     list_filter = ('name',)
     search_fields = ('name',)
-
-
-@register(Tag)
-class TagAdmin(ModelAdmin):
-    list_display = ('id', 'name', 'slug', 'color',)
 
 
 @register(Recipe)
@@ -25,14 +25,14 @@ class RecipeAdmin(ModelAdmin):
         return obj.favorites.count()
 
 
-@register(Favorite)
-class FavoriteAdmin(ModelAdmin):
-    list_display = ('user', 'recipe',)
-    list_filter = ('user', 'recipe',)
-
-
 @register(CountOfIngredient)
 class CountOfIngredientAdmin(ModelAdmin):
     list_display = (
         'id', 'recipe', 'ingredient', 'amount'
     )
+
+
+@register(Favorite)
+class FavoriteAdmin(ModelAdmin):
+    list_display = ('user', 'recipe',)
+    list_filter = ('user', 'recipe',)
