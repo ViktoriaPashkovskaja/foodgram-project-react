@@ -10,6 +10,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from backend.pagination import LimitPageNumberPagination
 from backend.permissions import IsAuthorOrAdminOrReadOnly
+
 from .filters import IngredientSearchFilter, RecipeFilter
 from .models import (CountOfIngredient, Favorite, Ingredient, Recipe,
                      ShoppingCart, Tag)
@@ -18,18 +19,18 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           ShoppingCartSerializer, TagSerializer)
 
 
+class TagViewSet(ReadOnlyModelViewSet):
+    serializer_class = TagSerializer
+    queryset = Tag.objects.all()
+    permission_classes = (AllowAny,)
+
+
 class IngredientViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     filter_backends = (IngredientSearchFilter,)
     queryset = Ingredient.objects.all()
     permission_classes = (AllowAny,)
     search_fields = ('^name',)
-
-
-class TagViewSet(ReadOnlyModelViewSet):
-    serializer_class = TagSerializer
-    queryset = Tag.objects.all()
-    permission_classes = (AllowAny,)
 
 
 class RecipeViewSet(ModelViewSet):
@@ -46,7 +47,7 @@ class RecipeViewSet(ModelViewSet):
 
     @staticmethod
     def post_method_for_action(request, pk, serializers):
-        data = {'user': request.user.id, 'recipe': pk}
+        data = {'user': request.user.id, 'recipes': pk}
         serializer = serializers(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -58,36 +59,17 @@ class RecipeViewSet(ModelViewSet):
         return self.post_method_for_action(request=request, pk=pk,
                                            serializers=FavoriteSerializer)
 
-    @staticmethod
-    def shopping_cart(request, pk):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        user = request.user
-        if request.method == 'GET':
-            recipe, created = ShoppingCart.objects.get_or_create(
-                user=user, recipe=recipe
-            )
-            if created is True:
-                serializer = ShoppingCartSerializer()
-                return Response(
-                    serializer.to_representation(instance=recipe),
-                    status=status.HTTP_201_CREATED
-                )
-            return Response(
-                {'errors': 'Рецепт уже в корзине покупок'},
-                status=status.HTTP_201_CREATED
-            )
-        if request.method == 'DELETE':
-            ShoppingCart.objects.filter(
-                user=user, recipe=recipe
-            ).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+    @action(methods=['POST'], detail=True,
+            permission_classes=[IsAuthenticated])
+    def shopping_cart(self, request, pk):
+        return self.post_method_for_action(request=request, pk=pk,
+                                           serializers=ShoppingCartSerializer)
 
     @staticmethod
     def delete_method_for_actions(request, pk, model):
         user = request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        model_object = get_object_or_404(model, user=user, recipe=recipe)
+        recipes = get_object_or_404(Recipe, id=pk)
+        model_object = get_object_or_404(model, user=user, recipes=recipes)
         model_object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -97,19 +79,25 @@ class RecipeViewSet(ModelViewSet):
             request=request, pk=pk, model=Favorite
         )
 
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
+        return self.delete_method_for_actions(
+            request=request, pk=pk, model=ShoppingCart
+        )
+
     @action(detail=False, permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         ingredients = CountOfIngredient.objects.filter(
-            recipe__shopping_cart__user=request.user).values(
+            recipes__shopping_cart__user=request.user).values(
             'ingredient__name',
-            'ingredient__measurement_unit').annotate(total=Sum('amount'))
+            'ingredient__measurement').annotate(total=Sum('amount'))
         shopping_list = 'список:\n'
         for number, ingredient in enumerate(ingredients, start=1):
             shopping_list += (
                 f'{number} '
                 f'{ingredient["ingredient__name"]} - '
                 f'{ingredient["total"]} '
-                f'{ingredient["ingredient__measurement_unit"]}\n')
+                f'{ingredient["ingredient__measurement"]}\n')
 
         purchase_list = 'purchase_list.txt'
         response = HttpResponse(shopping_list, content_type='text/plain')

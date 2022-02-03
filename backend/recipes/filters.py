@@ -1,5 +1,6 @@
 from django_filters.rest_framework import FilterSet, filters
 from rest_framework.filters import SearchFilter
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from .models import Recipe
 
@@ -9,6 +10,7 @@ class IngredientSearchFilter(SearchFilter):
 
 
 class RecipeFilter(FilterSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
     is_favorited = filters.BooleanFilter(method='get_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(
         method='get_is_in_shopping_cart')
