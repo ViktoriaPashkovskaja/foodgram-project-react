@@ -42,16 +42,16 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             'is_in_shopping_cart', 'image', 'text', 'cooking_time',
         )
 
-    @staticmethod
-    def get_ingredients(obj):
+    def get_ingredients(self, obj):
         queryset = CountOfIngredient.objects.filter(recipe=obj)
         return RecipeIngredientReadSerializer(queryset, many=True).data
 
     def get_is_favorited(self, obj):
-        request = self.context.get('request', )
+        request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        return Favorite.objects.filter(user=request.user, recipe=obj).exists()
+        return Favorite.objects.filter(
+            user=request.user, recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
@@ -83,7 +83,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'name', 'text', 'cooking_time')
 
     def validate(self, data):
-        ingredients = self.initial_data.get('ingredients', )
+        ingredients = self.initial_data.get('ingredients')
         ingredients_list = []
         for ingredient in ingredients:
             ingredient_id = ingredient['id']
@@ -98,20 +98,18 @@ class RecipeSerializer(serializers.ModelSerializer):
                     'amount': 'Количество ингредиента должно быть больше нуля!'
                 })
 
-        cooking_time = self.initial_data.get('cooking_time', )
+        cooking_time = self.initial_data.get('cooking_time')
         if int(cooking_time) <= 0:
             raise serializers.ValidationError({
                 'cooking_time': 'Время приготовления должно быть больше 0!'
             })
         return data
 
-    @staticmethod
-    def create_tags(tags, recipe):
+    def create_tags(self, tags, recipe):
         for tag in tags:
             recipe.tags.add(tag)
 
-    @staticmethod
-    def create_ingredients(ingredients, recipe):
+    def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
             CountOfIngredient.objects.create(
                 recipe=recipe, ingredient=ingredient['id'],
@@ -134,7 +132,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
-        request = self.context.get('request', )
+        request = self.context.get('request')
         context = {'request': request}
         return RecipeReadSerializer(
             instance, context=context).data
@@ -164,7 +162,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
-        request = self.context.get('request', )
+        request = self.context.get('request')
         context = {'request': request}
         return RepresentationSerializer(
             instance.recipe, context=context).data
