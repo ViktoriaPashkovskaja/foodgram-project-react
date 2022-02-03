@@ -79,12 +79,6 @@ class RecipeViewSet(ModelViewSet):
             request=request, pk=pk, model=Favorite
         )
 
-    @shopping_cart.mapping.delete
-    def delete_shopping_cart(self, request, pk):
-        return self.delete_method_for_actions(
-            request=request, pk=pk, model=ShoppingCart
-        )
-
     @action(detail=False, permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         ingredients = CountOfIngredient.objects.filter(
@@ -104,3 +98,9 @@ class RecipeViewSet(ModelViewSet):
         response['Content-Disposition'] = (f'attachment;'
                                            f'filename={purchase_list}')
         return response
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
+        return self.delete_method_for_actions(
+            request=request, pk=pk, model=ShoppingCart
+        )
