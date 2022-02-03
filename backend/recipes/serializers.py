@@ -5,16 +5,16 @@ from recipes.models import (CountOfIngredient, Favorite, Ingredient, Recipe,
 from users.serializers import CustomUserSerializer
 
 
-class IngredientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Ingredient
-        fields = ('id', 'name', 'measurement_unit',)
-
-
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug',)
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = ('id', 'name', 'measurement_unit',)
 
 
 class RecipeIngredientReadSerializer(serializers.ModelSerializer):
@@ -50,8 +50,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        return Favorite.objects.filter(
-            user=request.user, recipe=obj).exists()
+        return Favorite.objects.filter(user=request.user, recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
@@ -105,18 +104,18 @@ class RecipeSerializer(serializers.ModelSerializer):
             })
         return data
 
-    def create_tags(self, tags, recipe):
-        for tag in tags:
-            recipe.tags.add(tag)
-
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
             CountOfIngredient.objects.create(
                 recipe=recipe, ingredient=ingredient['id'],
                 amount=ingredient['amount'])
 
+    def create_tags(self, tags, recipe):
+        for tag in tags:
+            recipe.tags.add(tag)
+
     def create(self, validated_data):
-        author = self.context.get('request', ).user
+        author = self.context.get('request').user
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=author, **validated_data)
@@ -144,9 +143,9 @@ class RepresentationSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class ShoppingCartSerializer(serializers.ModelSerializer):
+class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ShoppingCart
+        model = Favorite
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
@@ -156,9 +155,9 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             instance.recipe, context=context).data
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
+class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Favorite
+        model = ShoppingCart
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
