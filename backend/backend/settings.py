@@ -64,6 +64,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+
 if DEBUG:
     DATABASES = {
         'default': {
